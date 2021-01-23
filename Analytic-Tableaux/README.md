@@ -1,6 +1,6 @@
 # Analytic-Tableaux
 
-Analytic Tableaux is Trees built according to some rules, in simple terms. A Node in a tableau is labelled with a proposition and the truth value we wish to give it, i.e., as prop * bool. 
+Analytic Tableaux is the Tree built according to some rules, in simple terms. A Node in a tableau is labelled with a proposition and the truth value we wish to give it, i.e., as prop * bool. 
 
 During the development of a tableau, nodes are introduced and examined.  When a node is examined, it is marked as examined and its analysis may result in:
 
