@@ -60,8 +60,8 @@ We can also provide a custom-made tableaux (either completely built or incomplet
 ```ocaml
 let gamma = [];;
 let root2 =  Root (Node (Impl (Impl (L "s", L "a"), Impl (L "s", L "a")), true), true, false,
-    Root (Node (Impl (L "s", L "a"), false), false, false,E,E),
-    Root (Node (Impl (L "s", L "a"), true), false, false,E,E));;
+              Root (Node (Impl (L "s", L "a"), false), false, false,E,E),
+              Root (Node (Impl (L "s", L "a"), true), false, false,E,E));;
 ```
 
 The previously stated functions would still work on this tree. As it can be seen, the above tree is incomplete. And we can complete this tree by selecting an unexplored node in it and then developing the entire path from that node. 
