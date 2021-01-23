@@ -39,6 +39,18 @@ let root1 = makeAna n gamma;;
 valid_tableau root1 gamma;;
 ```
 
+The variable *root1* (i.e the tableaux formed for the system) should be as follows:
+```ocaml
+Root (Node (Impl (Impl (L "s", L "a"), Impl (L "s", L "a")), true), true, false,
+  Root (Node (Impl (L "s", L "a"), false), true, false,
+    Root (Node (L "s", true), true, false,
+      Root (Node (L "a", false), true, false, E, E), E),
+    E),
+  Root (Node (Impl (L "s", L "a"), true), true, false,
+    Root (Node (L "s", false), true, false, E, E),
+      Root (Node (L "a", true), true, false, E, E)))
+```
+
 We can also check if the (valid) tableaux is complete or not by attempting to find any node in it which hasn't been examined yet.
 ```ocaml
 select_node root1;;
