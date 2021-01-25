@@ -1,59 +1,53 @@
+(* Defining the Recursive type for the different types of propositions*)
 type prop = T | F | L of string | Not of prop | And of prop * prop | Or of prop * prop | Impl of prop * prop | Iff of prop * prop
+
+(*Defining the type for the Natural Deduction proof Data-structure*)
 type nat = Root of prop  * nat * nat * nat * (prop list) * string | E 
 
+(* Custom Exception *)
 exception Myexp of string
 
+(* Basic Helper functions *)
 let rec member x l = match l with 
-
   [] -> false
   | y :: ys -> (if y=x then true else (member x ys))
-
 
 let rec union l1 l2 = match l1 with 
 
   [] -> l2
   | x :: xs -> (
-
     if (member x l2) then (union xs l2) else ([x] @ (union xs l2))
-
   )
 
 let rec deletion l1 l2 = match l1 with 
-
   [] -> []
-
 | x:: xs -> if (member x l2) then (deletion xs l2) else (x :: (deletion xs l2))  
 
 let add p l = if (member p l) then l else p :: l
 
 let rec delete x l = match l with 
-
   y :: ys -> if (x=y) then ys else y :: (delete x ys)
  | _ -> []
 
 let rec removeRep l1 = match l1 with 
- [] -> []
- | x :: xs -> if (xs=[]) then [x] else(
- 	match xs with 
-
- 	 y :: ys -> if (x=y) then ((removeRep xs)) else (x::(removeRep xs))
-
-
- ) 
-
+	 [] -> []
+	 | x :: xs -> if (xs=[]) then [x] else(
+	 	match xs with 
+	 	 y :: ys -> if (x=y) then ((removeRep xs)) else (x::(removeRep xs))
+	 ) 
 
 let rec equals l1' l2' = let l1 = (removeRep l1') and l2 = (removeRep l2') in 
 
 	(if ((List.length l1) = (List.length l2)) then (
 
-	match l1 with 
+			match l1 with 
 
-	 [] -> true
- |	x :: xs -> (if (member x l2) then (equals xs (delete x l2)) else false)
+			 [] -> true
+		 |	x :: xs -> (if (member x l2) then (equals xs (delete x l2)) else false)
 
+	) else false )
 
-) else false )
-
+(* Checks for the axiom type '->-I' *)
 let isImplI p r1 r2 r3 gamma = match p with 
 
      			 Impl(p1,q1) -> (
@@ -99,6 +93,7 @@ let isImplI p r1 r2 r3 gamma = match p with
 
      			 | _ -> false
 
+(* Returns for the axiom type '->-I' *)
 let retImplI p r1 r2 r3 gamma =  match p with 
 
      			 Impl(p1,q1) -> (
@@ -144,7 +139,7 @@ let retImplI p r1 r2 r3 gamma =  match p with
 
      			 | _ -> E
 
-
+(* Checks for the axiom type '~-Int' *)
 let isNotInt p r1 r2 r3 gamma = match r1 with 
 
      			 	 E -> (
@@ -182,6 +177,7 @@ let isNotInt p r1 r2 r3 gamma = match r1 with
 
      			 	   )
     			 
+(* Returns for the axiom type '~-Int' *)    			 
 let retNotInt p r1 r2 r3 gamma = match r1 with 
 
      			 	 E -> (
@@ -219,6 +215,7 @@ let retNotInt p r1 r2 r3 gamma = match r1 with
 
      			 	   )
 
+(* Checks for the axiom type '~-Class' *)
 let isNotClass p r1 r2 r3 gamma = 
 
 
@@ -306,8 +303,8 @@ let isNotClass p r1 r2 r3 gamma =
 
 		)
 
+(* Returns for the axiom type '~-Class' *)
 (* I am assuming the INF form i.e. No Not(Not(p)) case will be there*)
-
 let retNotClass p r1 r2 r3 gamma = match p with 
 
 			Not(p'') ->(		match r1 with 
@@ -389,11 +386,9 @@ let retNotClass p r1 r2 r3 gamma = match p with
 
 	     			 	   )
 
-
 		)
 
-
-
+(* Checks for the axiom type '/\-EL' *)
 let isAndEL p r1 r2 r3 gamma = match r1 with 
 
 		     			 	 E -> (
@@ -438,6 +433,7 @@ let isAndEL p r1 r2 r3 gamma = match r1 with
 
 		     			 	)
 
+(* Returns for the axiom type '/\-EL' *)
 let retAndEL p r1 r2 r3 gamma = match r1 with 
 
 		     			 	 E -> (
@@ -482,8 +478,7 @@ let retAndEL p r1 r2 r3 gamma = match r1 with
 
 		     			 	)
 
-
-
+(* Returns for the axiom type '/\-ER' *)
 let retAndER p r1 r2 r3 gamma = match r1 with 
 
 			     			 	 E -> (
@@ -524,13 +519,14 @@ let retAndER p r1 r2 r3 gamma = match r1 with
 			     			 	 	And(p1',p2') -> if ((p2'=p) && (r3=E) && (r2=E)&& (equals gamma gamma')) then (r1) else E
 			     			 	 	| _ -> E
 
-		 
-
 			     			 	)
 
  
-
-
+(* A highly complicated function that would check if the given Input ND proof tree is valid or not*)
+(* Apart from checking for the rules, appropriate tree invariants are also taken into account*)
+(* For example, if a node is a expanded to only two further nodes, then those two can be either the first and second child
+	Or they can be the first and third child etc. for the tree (Remember the type definition for ND proof tree)
+*)
 let rec valid_ndprooftree root = let rec valid_ndprooftreelist l = (match l with 
 
 	[] -> true
@@ -1123,7 +1119,8 @@ in
 
 )
 
-
+(* Takes a valid ND proof tree for Γ |- p and a proposition set Δ*)
+(* Outputs the valid ND proof for Γ U Δ |- p*)
 let rec pad root delta = (
 
 	match root with 
@@ -1142,6 +1139,7 @@ let rec pad root delta = (
 
 )
 
+(* Get the leaves of the tree *)
 let rec leaves root = match root with
 
 			 E -> []
@@ -1151,9 +1149,7 @@ let rec leaves root = match root with
 
 					"Hyp" -> [p]
 				  | "T-I" -> []
-				  | _ -> ((leaves p1) @ (leaves p2)) @ (leaves p3)	  		
-
-						  	   
+				  | _ -> ((leaves p1) @ (leaves p2)) @ (leaves p3)	  							  	   
 
 			)
 
@@ -1163,14 +1159,14 @@ let rec pruneTemp p delta gamma = match p with
 | Root(p',p1',p2',p3',gamma',s') -> Root(p',(pruneTemp p1' delta gamma), (pruneTemp p2' delta gamma), (pruneTemp p3' delta gamma), (union delta (deletion gamma' gamma)), s')
 
 
+(* Takes a valid ND proof tree for Γ |- p*)
+(* Outputs a valid ND proof for Δ |- p, where Δ is a finite subset of Γ*)
 let prune root = let delta = (leaves root) in (
 
 	match root with 
 
 		E -> E
 	 | Root(p,p1,p2,p3,gamma,s) -> Root(p,(pruneTemp p1 delta gamma),(pruneTemp p2 delta gamma),(pruneTemp p3 delta gamma),delta,s)
-
-
 )
 
 
@@ -1206,12 +1202,7 @@ let rec sameTable l = match l with
 
   			 | _ -> false
 
-  			
-
   		)
-
-
-  		
   )
 
 
@@ -1266,8 +1257,12 @@ let rec graftTemp root l delta = if (sameTable l) then (
 )  else raise (Myexp "Invalid proof list")
 
 
-
-
+(*
+ * Inputs: 
+	* root: The (valid) input ND proof tree of judgment Δ |- p, where Δ = {q_1, ..., q_k}
+	* l: A list of proof trees π_1, ... π_k of judgments Γ |- q_1 ... Γ |- q_k
+** Outputs: A valid ND proof of judgment Γ |- p
+*)
 let graft root l =  if (sameTable l) then ( 
 
 	let gamma = (getTable l) in
@@ -1290,13 +1285,14 @@ let graft root l =  if (sameTable l) then (
 
 )  else raise (Myexp "Invalid proof list")
 
-let getVal r1 r2 r3 = if(r1=E) then (
 
- if (r2=E) then r3 else r2
+let getVal r1 r2 r3 = if(r1=E) then (if (r2=E) then r3 else r2) else r1
 
-) else r1
-
-
+(* A complicated function that takes a valid ND proof tree and returns if it has an r-pair or not *)
+(* Apart from checking for the rules, appropriate tree invariants are also taken into account*)
+(* For example, if a node is a expanded to only two further nodes, then those two can be either the first and second child
+	Or they can be the first and third child etc. for the tree (Remember the type definition for ND proof tree)
+*)
 let rec has_rpair root = match root with 
 
   E -> false
@@ -1789,7 +1785,6 @@ let rec has_rpair root = match root with
 
                 	                	  | E -> false
 
-
             	)
 
                 else ((has_rpair r1) || (has_rpair r2) || (has_rpair r3))
@@ -1804,6 +1799,11 @@ let rec has_rpair root = match root with
 
 )
 
+(* A complicated function that checks if the input corresponds to an r-pair or not *)
+(* Apart from checking for the rules, appropriate tree invariants are also taken into account*)
+(* For example, if a node is a expanded to only two further nodes, then those two can be either the first and second child
+	Or they can be the first and third child etc. for the tree (Remember the type definition for ND proof tree)
+*)
 let rec is_rpair root = match root with 
 
   E -> false
@@ -2310,7 +2310,11 @@ let rec is_rpair root = match root with
 
 )
 
-
+(* A complicated recursive function that finds r-pair for the corresponding ND-proof tree *)
+(* Apart from checking for the rules, appropriate tree invariants are also taken into account*)
+(* For example, if a node is a expanded to only two further nodes, then those two can be either the first and second child
+	Or they can be the first and third child etc. for the tree (Remember the type definition for ND proof tree)
+*)
 let rec ffind_rpair root = if (has_rpair root) then (
 
 	match root with 
@@ -2823,8 +2827,8 @@ let rec ffind_rpair root = if (has_rpair root) then (
 
 ) else E
 
+(* The main find_pair function that gets called along with the feature of exceptions*)
 let find_rpair root = if ((ffind_rpair root) = E) then raise (Myexp "Normalized") else (ffind_rpair root)
-
 
 let rec findLeavesTemp root gamma p = match root with 
 
@@ -2867,8 +2871,8 @@ let findSimple pi1 pi2 = match pi2 with
 
     )
 
-
-let simplifyImlp r1 r2 r3 gamma  p =    match r1 with 
+(* Simplifying the Implication axioms*)
+let simplifyImlp r1 r2 r3 gamma p =    match r1 with 
 
                 	     E -> (
 
@@ -3117,8 +3121,7 @@ let simplifyImlp r1 r2 r3 gamma  p =    match r1 with
 
                 	     )
 
-
-
+(* Simplifying the OR axioms*)
 let simplifyOr r1 r2 r3 gamma p = 	match r1 with 
 
                 	                		Root(p',_,_,_,gamma1',_) -> (
@@ -3481,7 +3484,12 @@ let simplifyOr r1 r2 r3 gamma p = 	match r1 with
 
                 	                	  | E -> E
 
-
+(* A complicated function that correct the improper ND tree with respect to the '->-I' axioms*)
+(* To be called for the outputs of prune and graft because of their issues with the "->-I" case*)
+(* Apart from checking for the rules, appropriate tree invariants are also taken into account*)
+(* For example, if a node is a expanded to only two further nodes, then those two can be either the first and second child
+	Or they can be the first and third child etc. for the tree (Remember the type definition for ND proof tree)
+*)
 let rec simplify root gamma'= match root with 
 
   E -> E 
@@ -3553,6 +3561,11 @@ let rec simplify root gamma'= match root with
 	) 
 )
 
+(* A complicated function that simplifies the ND tree with respect to the '/\-EL', '/\-ER', '\/-E', and '->-E' axioms*)
+(* Apart from checking for the rules, appropriate tree invariants are also taken into account*)
+(* For example, if a node is a expanded to only two further nodes, then those two can be either the first and second child
+	Or they can be the first and third child etc. for the tree (Remember the type definition for ND proof tree)
+*)
 let simplify2 root = match root with 
 
   Root(p,r1,r2,r3,gamma,s) -> (
@@ -3666,6 +3679,8 @@ let simplify2 root = match root with
 
   )
 
+(*A valid but "simpler" ND proof tree of the same consequent judgment*)
+(* Combines the both the simplifications defined earlier*)
 let simplify1 root = 
 
   let root1 = (simplify2 root) in (
@@ -3677,7 +3692,6 @@ let simplify1 root =
 
 
   )
-	
 
 
 let rec normalise1 root = if (is_rpair root) then (
@@ -3695,6 +3709,7 @@ else (
 
 )
 
+(*A completely "simplified" ND proof tree, with no r-pairs*)
 let normalise root = 
 
 	let root1 = (normalise1 root) in (
@@ -3708,177 +3723,69 @@ let normalise root =
 	  )
 	
 
-(*
+(* 	TESTING FOR THE FUNCTIONS DEALING WITH R-PAIR REMOVAL
 
+-> Defining the Propositions and the ND-proof tree:
 
-TESTING OF THE PROGRAM A3:
+	let a = L("a");;
+	let b = L("b");;
+	let c = L("c");;
 
+	let r = c;;
+	let s = Impl(a,Impl(b,a));;
+	let p = s;;
+	let q = Impl(s,p);;
 
-I have used an example of the proof for: |- (p -> (q->r)) -> ((p->q) -> (p->r)) {Which is actually a standard type for the hilbert style proof system}
-
-	The initial gamma used by me is: [] 
-	p as: Impl(L("s"),L("a"))
-	q as: And(L("s"),L("a"))
-	r as: Or(L("s"),L("a"))
-
-So, the proof tree gets 
-
-let root = Root(Impl(Impl(p,Impl(q,r)),(Impl(Impl(p,q),Impl(p,r)))),Root((Impl(Impl(p,q),Impl(p,r))),E,E,(Root(Impl(p,r),E,(Root(r,E,(Root(Impl(q,r),E,(Root(p,E,E,E,[Impl(p,Impl(q,r));Impl(p,q);p],"Hyp")),(Root(Impl(p,Impl(q,r)),E,E,E,[Impl(p,Impl(q,r));Impl(p,q);p],"Hyp")),[Impl(p,Impl(q,r));Impl(p,q);p],"->-E")),(Root(q,E,(Root(p,E,E,E,[Impl(p,Impl(q,r));Impl(p,q);p],"Hyp")),(Root(Impl(p,q),E,E,E,[Impl(p,Impl(q,r));Impl(p,q);p],"Hyp")),[Impl(p,Impl(q,r));Impl(p,q);p],"->-E")),[Impl(p,Impl(q,r));Impl(p,q);p],"->-E")),E,[Impl(p,Impl(q,r));Impl(p,q)],"->-I")),[Impl(p,Impl(q,r))],"->-I"),E,E,[],"->-I");;
-
-val root : nat =
-  Root
-   (Impl
-     (Impl (Impl (L "s", L "a"),
-       Impl (And (L "s", L "a"), Or (L "s", L "a"))),
-     Impl (Impl (Impl (L "s", L "a"), And (L "s", L "a")),
-      Impl (Impl (L "s", L "a"), Or (L "s", L "a")))),
-   Root
-    (Impl (Impl (Impl (L "s", L "a"), And (L "s", L "a")),
-      Impl (Impl (L "s", L "a"), Or (L "s", L "a"))),
-    E, E,
-    Root (Impl (Impl (L "s", L "a"), Or (L "s", L "a")), E,
-     Root (Or (L "s", L "a"), E,
-      Root (Impl (And (L "s", L "a"), Or (L "s", L "a")), E,
-       Root (Impl (L "s", L "a"), E, E, E,
-        [Impl (Impl (L "s", L "a"),
-          Impl (And (L "s", L "a"), Or (L "s", L "a")));
-         Impl (Impl (L "s", L "a"), And (L "s", L "a")); Impl (L "s", L "a")],
-        "Hyp"),
-       Root
-        (Impl (Impl (L "s", L "a"),
-          Impl (And (L "s", L "a"), Or (L "s", L "a"))),
-        E, E, E,
-        [Impl (Impl (L "s", L "a"),
-          Impl (And (L "s", L "a"), Or (L "s", L "a")));
-         Impl (Impl (L "s", L "a"), And (L "s", L "a")); Impl (L "s", L "a")],
-        "Hyp"),
-       [Impl (Impl (L "s", L "a"),
-         Impl (And (L "s", L "a"), Or (L "s", L "a")));
-        Impl (Impl (L "s", L "a"), And (L "s", L "a")); Impl (L "s", L "a")],
-       "->-E"),
-      Root (And (L "s", L "a"), E,
-       Root (Impl (L "s", L "a"), E, E, E,
-        [Impl (Impl (L "s", L "a"),
-          Impl (And (L "s", L "a"), Or (L "s", L "a")));
-         Impl (Impl (L "s", L "a"), And (L "s", L "a")); Impl (L "s", L "a")],
-        "Hyp"),
-       Root (Impl (Impl (L "s", L "a"), And (L "s", L "a")), E, ...), ...),
-      ...),
-     ...),
-    ...),
-   ...)
-
-
-So, this proof construction returned true for the valid_tree condition and it is indeed true. By making some minute modifications, we can notice that this thing gets changed to false
-
-I padded it's gamma with a Delta: [Impl(p,r)]. And it gave proper results as expected : 
+	let root = Root(q,E,(Root(p,E,E,(Root(And(p,r),E,(Root(p,(Root(Or(s,p),E,E,(Root(s,E,E,(Root(Impl(b,a),E,E,(Root(a,E,E,E,[r;a;b],"Hyp")),[r;a],"->-I")),[r],"->-I")),[r],"\\/-IL")),(Root(p,E,E,E,[r;s],"Hyp")),(Root(p,E,E,E,[r;p],"Hyp")),[r],"\\/-E")),(Root(r,E,E,E,[r],"Hyp")),[r],"/\\-I")),[r],"/\\-EL")),(Root(Impl(p,q),E,E,(Root(q,E,E,(Root(p,E,E,E,[r;p;s],"Hyp")),[r;p],"->-I")),[r],"->-I")),[r],"->-E");;
 
 	Root
-	 (Impl
-	   (Impl (Impl (L "s", L "a"), Impl (And (L "s", L "a"), Or (L "s", L "a"))),
-	   Impl (Impl (Impl (L "s", L "a"), And (L "s", L "a")),
-	    Impl (Impl (L "s", L "a"), Or (L "s", L "a")))),
-	 Root
-	  (Impl (Impl (Impl (L "s", L "a"), And (L "s", L "a")),
-	    Impl (Impl (L "s", L "a"), Or (L "s", L "a"))),
-	  E, E,
-	  Root (Impl (Impl (L "s", L "a"), Or (L "s", L "a")), E, E, E,
-	   [Impl (Impl (L "s", L "a"), Impl (And (L "s", L "a"), Or (L "s", L "a")));
-	    Impl (Impl (L "s", L "a"), And (L "s", L "a"));
-	    Impl (Impl (L "s", L "a"), Or (L "s", L "a"))],
-	   "Hyp"),
-	  [Impl (Impl (L "s", L "a"), Impl (And (L "s", L "a"), Or (L "s", L "a")));
-	   Impl (Impl (L "s", L "a"), Or (L "s", L "a"))],
-	  "->-I"),
-	 E, E, [Impl (Impl (L "s", L "a"), Or (L "s", L "a"))], "->-I")
+	   (Impl (Impl (L "a", Impl (L "b", L "a")),
+	     Impl (L "a", Impl (L "b", L "a"))),
+	   E,
+	   Root (Impl (L "a", Impl (L "b", L "a")), E, E,
+	    Root (And (Impl (L "a", Impl (L "b", L "a")), L "c"), E,
+	     Root (Impl (L "a", Impl (L "b", L "a")),
+	      Root
+	       (Or (Impl (L "a", Impl (L "b", L "a")),
+	         Impl (L "a", Impl (L "b", L "a"))),
+	       E, E,
+	       Root (Impl (L "a", Impl (L "b", L "a")), E, E,
+	        Root (Impl (L "b", L "a"), E, E,
+	         Root (L "a", E, E, E, [L "c"; L "a"; L "b"], "Hyp"), [L "c"; L "a"],
+	         "->-I"),
+	        [L "c"], "->-I"),
+	       [L "c"], "\\/-IL"),
+	      Root (Impl (L "a", Impl (L "b", L "a")), E, E, E,
+	       [L "c"; Impl (L "a", Impl (L "b", L "a"))], "Hyp"),
+	      Root (Impl (L "a", Impl (L "b", L "a")), E, E, E,
+	       [L "c"; Impl (L "a", Impl (L "b", L "a"))], "Hyp"),
+	      [L "c"], "\\/-E"),
+	     Root (L "c", E, E, E, [L "c"], "Hyp"), [L "c"], "/\\-I"),
+	    [L "c"], "/\\-EL"),
+	   Root
+	    (Impl (Impl (L "a", Impl (L "b", L "a")),
+	      Impl (Impl (L "a", Impl (L "b", L "a")),
+	       Impl (L "a", Impl (L "b", L "a")))),
+	    E, E,
+	    Root
+	     (Impl (Impl (L "a", Impl (L "b", L "a")),
+	       Impl (L "a", Impl (L "b", L "a"))),
+	     E, E,
+	     Root (Impl (L "a", Impl (L "b", L "a")), E, E, E,
+	      [L "c"; Impl (L "a", Impl (L "b", L "a"));
+	       Impl (L "a", Impl (L "b", L "a"))],
+	      "Hyp"),
+	     [L "c"; Impl (L "a", Impl (L "b", L "a"))], "->-I"),
+	    [L "c"], "->-I"),
+	   [L "c"], "->-E")
 
+-> On applying the find r-pair funciton, the program returns the same tree as the input one as expected
 
+-> Also, I made a is_rpair function which returns true if a given Root is an R-pair root. I tested it for the various subtrees of the given input and the corresponding results were obtained correctly!
 
-Also, I modified the padding delta by adding a "And(p,r)" term and then took it's pruning and the result was still a valid prooftree as expected.
+-> Also, I used the normalise functon and the simplify1 function on this given tree and checked it for the correctness of the Tree and the presence of any r-pairs or not. And the outputs came as expected
 
-Then, coming to graft, I use the padded proof as the original one and the proof for the corresponding leaf with a different gamma and then combining them, I get the same proof as root!
-
-			The grafted proof was corresponding to:
-
-					 Root (Impl (Impl (L "s", L "a"), Or (L "s", L "a")), E, E, E,
-					   [Impl (Impl (L "s", L "a"), Or (L "s", L "a"));
-					    Impl (Impl (L "s", L "a"), Impl (And (L "s", L "a"), Or (L "s", L "a")));
-					    Impl (Impl (L "s", L "a"), And (L "s", L "a"))],
-					   "Hyp"),
-
- 			The proof for this Impl(p,r) is (With a gamma of: 
-
-	 			[Impl (Impl (L "s", L "a"), Impl (And (L "s", L "a"), Or (L "s", L "a")));
-				 Impl (Impl (L "s", L "a"), And (L "s", L "a"))]
-            ) is a valid ND proof tree as checked by the first function implemented, thus the entire proof system and the given programs are working correctly. I also checked them for other simple cases including the other Eleminations etc. 
-
-
-
-NOW, FOR TESTING A4: ....
-
-We have:
-
-
-
-
-let a = L("a");;
-let b = L("b");;
-let c = L("c");;
-
-let r = c;;
-let s = Impl(a,Impl(b,a));;
-let p = s;;
-let q = Impl(s,p);;
-
-let root = Root(q,E,(Root(p,E,E,(Root(And(p,r),E,(Root(p,(Root(Or(s,p),E,E,(Root(s,E,E,(Root(Impl(b,a),E,E,(Root(a,E,E,E,[r;a;b],"Hyp")),[r;a],"->-I")),[r],"->-I")),[r],"\\/-IL")),(Root(p,E,E,E,[r;s],"Hyp")),(Root(p,E,E,E,[r;p],"Hyp")),[r],"\\/-E")),(Root(r,E,E,E,[r],"Hyp")),[r],"/\\-I")),[r],"/\\-EL")),(Root(Impl(p,q),E,E,(Root(q,E,E,(Root(p,E,E,E,[r;p;s],"Hyp")),[r;p],"->-I")),[r],"->-I")),[r],"->-E");;
-
-Root
-   (Impl (Impl (L "a", Impl (L "b", L "a")),
-     Impl (L "a", Impl (L "b", L "a"))),
-   E,
-   Root (Impl (L "a", Impl (L "b", L "a")), E, E,
-    Root (And (Impl (L "a", Impl (L "b", L "a")), L "c"), E,
-     Root (Impl (L "a", Impl (L "b", L "a")),
-      Root
-       (Or (Impl (L "a", Impl (L "b", L "a")),
-         Impl (L "a", Impl (L "b", L "a"))),
-       E, E,
-       Root (Impl (L "a", Impl (L "b", L "a")), E, E,
-        Root (Impl (L "b", L "a"), E, E,
-         Root (L "a", E, E, E, [L "c"; L "a"; L "b"], "Hyp"), [L "c"; L "a"],
-         "->-I"),
-        [L "c"], "->-I"),
-       [L "c"], "\\/-IL"),
-      Root (Impl (L "a", Impl (L "b", L "a")), E, E, E,
-       [L "c"; Impl (L "a", Impl (L "b", L "a"))], "Hyp"),
-      Root (Impl (L "a", Impl (L "b", L "a")), E, E, E,
-       [L "c"; Impl (L "a", Impl (L "b", L "a"))], "Hyp"),
-      [L "c"], "\\/-E"),
-     Root (L "c", E, E, E, [L "c"], "Hyp"), [L "c"], "/\\-I"),
-    [L "c"], "/\\-EL"),
-   Root
-    (Impl (Impl (L "a", Impl (L "b", L "a")),
-      Impl (Impl (L "a", Impl (L "b", L "a")),
-       Impl (L "a", Impl (L "b", L "a")))),
-    E, E,
-    Root
-     (Impl (Impl (L "a", Impl (L "b", L "a")),
-       Impl (L "a", Impl (L "b", L "a"))),
-     E, E,
-     Root (Impl (L "a", Impl (L "b", L "a")), E, E, E,
-      [L "c"; Impl (L "a", Impl (L "b", L "a"));
-       Impl (L "a", Impl (L "b", L "a"))],
-      "Hyp"),
-     [L "c"; Impl (L "a", Impl (L "b", L "a"))], "->-I"),
-    [L "c"], "->-I"),
-   [L "c"], "->-E")
-
-On applying the find r-pair funciton, the program returns the same tree as the input one as expected
-Also, I made a is_rpair function which returns true if a given Root is an R-pair root. I tested it for the various subtrees of the given input and the corresponding results were obtained correctly!
-
-Also, I used the normalise functon and the simplify1 function on this given tree and checked it for the correctness of the Tree and the presence of any r-pairs or not. And the outputs came as expected
-
-The final normalised tree of this given proof tree is:
+-> The final normalised tree of this given proof tree is:
 
 	Root
 	   (Impl (Impl (L "a", Impl (L "b", L "a")),
@@ -3888,7 +3795,8 @@ The final normalised tree of this given proof tree is:
 	    [Impl (L "a", Impl (L "b", L "a")); L "c"], "Hyp"),
 	   [L "c"], "->-I")
 
-let root = Root(L("q"),(Root(Impl(L("p"),L("q")),(Root(L("q"),(Root(F,E,E,E,[L("p");F],"Hyp")),E,E,[L("p");F],"~-Int")),(E),(E),[F],"->-I")),(Root(L("p"),(Root(F,E,E,E,[F],"Hyp")),E,E,[F],"~-Int")),(E),[F],"->-E");;
+-> Another ND-tree on which the above system might be tested:
+	let root = Root(L("q"),(Root(Impl(L("p"),L("q")),(Root(L("q"),(Root(F,E,E,E,[L("p");F],"Hyp")),E,E,[L("p");F],"~-Int")),(E),(E),[F],"->-I")),(Root(L("p"),(Root(F,E,E,E,[F],"Hyp")),E,E,[F],"~-Int")),(E),[F],"->-E");;
 
 *)          		
 

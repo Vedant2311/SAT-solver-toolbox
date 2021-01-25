@@ -28,7 +28,7 @@ The code can be compiled and run on the Ocaml terminal. The input tree is of the
     type tree = Root of prop * tree * tree * typeString * gamma 
               | E   (For the root case)
               
-In the given example, we take a proposition *p⟶p* (let us call it *q*), where *p* would be *s⟶a*, with *s* and *a* also being propositional variables. A standard proof for *|- p ⟶ p* is considered. 
+Here, each node will be having at max two children and each Axiom is encoded as a string in the *typeString*. In the given example, we take a proposition *p⟶p* (let us call it *q*), where *p* would be *s⟶a*, with *s* and *a* also being propositional variables. A standard proof for *|- p ⟶ p* is considered. 
 
 Now, if Γ consisted of [q], then the proof tree for this would be: 
 ```ocaml
@@ -67,12 +67,12 @@ valid_hprooftree root1;;
 
 After that, we can pad the previous Hilbert tree Γ (that was [] initially), with the propositional set Δ = [*q*]. Now, that would give the proof tree for Γ U Δ |- q, which would basically be the root0 that we declared initially.
 ```ocaml 
-let padded_root1 = pad root1 [q]
+let padded_root1 = pad root1 [q];;
 ```
 
 Similarly, we can perform pruning on the above formed Hilbert proof (that has the new Γ as [*q*]) and get the Hilbert proof for Δ |- q, where Δ is a finite subset of Γ.
 ```ocaml
-let pruned = prune padded_root1
+let pruned = prune padded_root1;;
 ```
 
 We also define a graft function, which basically has the following functionality:
